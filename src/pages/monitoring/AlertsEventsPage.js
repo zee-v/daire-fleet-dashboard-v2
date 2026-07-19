@@ -117,8 +117,8 @@ export default function AlertsEventsPage() {
             <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
             <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} />
             <Legend />
-            <Bar dataKey="CRITICAL" fill={SEV_COLOR.CRITICAL} name="Critical" stackId="a" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="WARNING" fill={SEV_COLOR.WARNING} name="Warning" stackId="a" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="CRITICAL" fill={SEV_COLOR.CRITICAL} name="Critical" isAnimationActive={false} />
+            <Bar dataKey="WARNING" fill={SEV_COLOR.WARNING} name="Warning" isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

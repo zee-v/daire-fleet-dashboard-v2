@@ -19,34 +19,32 @@ const ROUTE_SECTIONS = [
     icon: '▦',
     defaultExpanded: true,
     children: [
-      { label: 'Dashboard', route: '/fleet-overview', icon: '📊', end: true },
-      { label: 'Detailed Health Report', route: '/fleet-overview/health-report', icon: '❤️' },
-      { label: 'Alerts Summary', route: '/fleet-overview/alerts-summary', icon: '⚠️' },
-      { label: 'Trends / Analytics', route: '/fleet-overview/trends-analytics', icon: '📈' },
+      { label: 'Dashboard', route: '/fleet-overview', end: true },
+      { label: 'Detailed Health Report', route: '/fleet-overview/health-report' },
+      { label: 'Alerts Summary', route: '/fleet-overview/alerts-summary' },
+      { label: 'Trends / Analytics', route: '/fleet-overview/trends-analytics' },
     ],
   },
   {
     id: 'live-monitoring',
     label: 'Live Monitoring',
-    icon: '📡',
+    icon: '◉',
     children: [
-      { label: 'Health Score', route: '/live-monitoring/health-score', icon: '❤️' },
-      { label: 'KPI Monitoring', route: '/live-monitoring/kpi-monitoring', icon: '📈' },
-      { label: 'Alerts & Events', route: '/live-monitoring/alerts-events', icon: '🚨' },
+      { label: 'Alerts & Events', route: '/live-monitoring/alerts-events' },
     ],
   },
   {
     id: 'daire-analytics',
     label: 'dAIRE Analytics',
-    icon: '📊',
+    icon: '◈',
     children: [
-      { label: 'Ship Overview', route: '/daire-analytics/ship-overview', icon: '🚢' },
-      { label: 'Energy & Efficiency', route: '/daire-analytics/energy-efficiency', icon: '⚡' },
-      { label: 'Generator Performance', route: '/daire-analytics/generator-performance', icon: '⚙️' },
-      { label: 'Historical Trends', route: '/daire-analytics/historical-trends', icon: '📉' },
-      { label: 'Shaft Telemetry', route: '/daire-analytics/shaft-telemetry', icon: '🔩' },
-      { label: 'Component Summary', route: '/daire-analytics/component-summary', icon: '🧩' },
-      { label: 'Thermal & Winding Health', route: '/daire-analytics/thermal-health', icon: '🌡️' },
+      { label: 'Ship Overview', route: '/daire-analytics/ship-overview' },
+      { label: 'Energy & Efficiency', route: '/daire-analytics/energy-efficiency' },
+      { label: 'Generator Performance', route: '/daire-analytics/generator-performance' },
+      { label: 'Historical Trends', route: '/daire-analytics/historical-trends' },
+      { label: 'Shaft Telemetry', route: '/daire-analytics/shaft-telemetry' },
+      { label: 'Component Summary', route: '/daire-analytics/component-summary' },
+      { label: 'Thermal & Winding Health', route: '/daire-analytics/thermal-health' },
     ],
   },
 ];
@@ -63,7 +61,6 @@ function RouteChildLink({ item }) {
       className={({ isActive }) => `nav-comp-row sidebar-child-link${isActive ? ' nav-comp-row--active' : ''}`}
       title={item.label}
     >
-      <span className="nav-icon">{item.icon}</span>
       <span className="nav-comp-label">{item.label}</span>
     </NavLink>
   );
@@ -170,7 +167,7 @@ function PredictiveMaintenanceSection({ fleets }) {
         onClick={() => setExpanded((p) => !p)}
         aria-expanded={expanded}
       >
-        <span className="nav-icon">🔮</span>
+        <span className="nav-icon">◇</span>
         <span className="nav-label">Predictive Maintenance</span>
         <span className={`nav-arrow ${expanded ? 'nav-arrow--open' : ''}`}>›</span>
       </button>
@@ -219,7 +216,6 @@ export default function Sidebar() {
 
       <div className="sidebar-theme-toggle">
         <button className="theme-toggle-btn" onClick={toggleTheme} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-          <span className="theme-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
           <span className="theme-label">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
       </div>
