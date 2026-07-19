@@ -340,6 +340,289 @@ api.get('/component/:componentId/data', (req, res) => {
   }
 });
 
+// ─── Beijing Maersk XLSX pipeline ─────────────────────────────────────────────
+
+const XLSX = require('xlsx');
+const XLSX_PATH = path.join(__dirname, 'data', 'Hermis SGM data April 2026 hourly.xlsx');
+const BEIJING_IMO = 9984572;
+
+const SENSOR_MAP = {
+  61: 'shaft_rpm', 602: 'shaft_rpm_setpoint', 619: 'shaft_power_kw', 629: 'shaft_torque_knm',
+  613: 'sg_power_kw', 3603: 'sg_actual_power_kw', 3604: 'sg_actual_frequency_hz',
+  3605: 'sg_actual_current_a', 3606: 'sg_actual_voltage_v', 3607: 'sg_dc_voltage_v',
+  615: 'sg_running_hours', 617: 'sg_energy_kwh', 1585: 'sg_available_power_pct',
+  3601: 'sg_system_mode', 3602: 'sg_actual_speed_rpm',
+  3608: 'sg_transformer_winding_1u_temp', 3609: 'sg_transformer_winding_1v_temp',
+  3610: 'sg_transformer_winding_1w_temp', 3611: 'sg_transformer_winding_2u_temp',
+  3612: 'sg_transformer_winding_2v_temp', 3613: 'sg_transformer_winding_2w_temp',
+  3614: 'sg_reactor_winding_l1_1_temp', 3615: 'sg_reactor_winding_l1_2_temp',
+  3616: 'sg_reactor_winding_l1_3_temp', 3617: 'sg_reactor_winding_l2_1_temp',
+  3618: 'sg_reactor_winding_l2_2_temp', 3619: 'sg_reactor_winding_l2_3_temp',
+  3622: 'sg_winding_u1_temp', 3623: 'sg_winding_v1_temp', 3624: 'sg_winding_w1_temp',
+  3625: 'sg_winding_u2_temp', 3626: 'sg_winding_v2_temp', 3627: 'sg_winding_w2_temp',
+  3628: 'sg_air_temp_hot1', 3629: 'sg_air_temp_cold1',
+  3630: 'sg_air_temp_hot2', 3631: 'sg_air_temp_cold2',
+  3632: 'sg_converter_coolant_temp',
+};
+
+const HEALTHY = {
+  shaft_rpm: 67.8, sg_actual_power_kw: 1232.0, sg_actual_current_a: 1211.0,
+  sg_actual_frequency_hz: 44.3, sg_actual_voltage_v: 518.0,
+  shaft_torque_knm: 4160.0, shaft_power_kw: 29555.0,
+  sg_winding_u1_temp: 47.8, sg_converter_coolant_temp: 35.0,
+  sg_available_power_pct: 100.0,
+};
+
+const THRESHOLDS = {
+  shaft_rpm:              [null, 30, null, null],
+  shaft_power_kw:         [null, null, 35000, 40000],
+  sg_actual_current_a:    [null, null, 1800, 2200],
+  sg_actual_frequency_hz: [35, 55, null, 58],
+  sg_winding_u1_temp:     [null, null, 80, 100],
+  sg_winding_v1_temp:     [null, null, 80, 100],
+  sg_winding_w1_temp:     [null, null, 80, 100],
+  sg_converter_coolant_temp: [null, null, 55, 70],
+};
+
+function avg(vals) { return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; }
+function stddev(vals) {
+  if (vals.length < 2) return 0;
+  const m = avg(vals);
+  return Math.sqrt(vals.reduce((s, v) => s + (v - m) ** 2, 0) / vals.length);
+}
+
+function mechanicalPenalty(m) {
+  const power = avg(m.shaft_power_kw || [HEALTHY.shaft_power_kw]);
+  const torque = avg(m.shaft_torque_knm || [HEALTHY.shaft_torque_knm]);
+  const rpm = avg(m.shaft_rpm || [HEALTHY.shaft_rpm]);
+  if (rpm < 5) return 0;
+  const expected = torque * rpm * (2 * Math.PI / 60) / 1000;
+  if (expected < 1) return 0;
+  const ratio = power / expected;
+  const dev = Math.abs(ratio - 1.0);
+  return Math.min(25, parseFloat((dev * 40).toFixed(4)));
+}
+
+function electricalPenalty(m) {
+  const power = avg(m.sg_actual_power_kw || [0]);
+  const current = avg(m.sg_actual_current_a || [0]);
+  if (power < 50) return 0;
+  const expectedCurrent = HEALTHY.sg_actual_current_a * (power / HEALTHY.sg_actual_power_kw);
+  const excessPct = Math.max(0, (current - expectedCurrent) / Math.max(expectedCurrent, 1));
+  return Math.min(20, parseFloat((excessPct * 60).toFixed(4)));
+}
+
+function thermalPenalty(m) {
+  const checks = [
+    ['sg_winding_u1_temp', 47.8, 80], ['sg_winding_v1_temp', 47.7, 80],
+    ['sg_winding_w1_temp', 47.9, 80], ['sg_reactor_winding_l1_1_temp', 55.5, 85],
+    ['sg_reactor_winding_l1_2_temp', 57.9, 85], ['sg_transformer_winding_2v_temp', 53.1, 80],
+    ['sg_converter_coolant_temp', 35.0, 55],
+  ];
+  let maxP = 0;
+  for (const [name, baseline, alarm] of checks) {
+    const v = avg(m[name] || [baseline]);
+    if (v > baseline) maxP = Math.max(maxP, (v - baseline) / Math.max(alarm - baseline, 1) * 20);
+  }
+  return Math.min(20, parseFloat(maxP.toFixed(4)));
+}
+
+function frequencyPenalty(m, freqHistory) {
+  const power = avg(m.sg_actual_power_kw || [0]);
+  if (power < 50) return 0;
+  const sd = stddev(freqHistory || m.sg_actual_frequency_hz || [44.3]);
+  return Math.min(15, parseFloat((sd * 5).toFixed(4)));
+}
+
+function mismatchPenalty(m) {
+  const shaft = avg(m.shaft_rpm || [HEALTHY.shaft_rpm]);
+  const sg = avg(m.sg_actual_speed_rpm || [HEALTHY.shaft_rpm]);
+  const power = avg(m.sg_actual_power_kw || [0]);
+  if (power < 50 || shaft < 5) return 0;
+  const diffPct = Math.abs(shaft - sg) / Math.max(shaft, 1) * 100;
+  return Math.min(10, parseFloat((diffPct * 2).toFixed(4)));
+}
+
+function loadingPenalty(m) {
+  const actual = avg(m.sg_actual_power_kw || [HEALTHY.sg_actual_power_kw]);
+  const available = avg(m.sg_available_power_pct || [HEALTHY.sg_available_power_pct]);
+  if (actual < 50) return 0;
+  const drop = Math.max(0, HEALTHY.sg_available_power_pct - available);
+  return Math.min(10, parseFloat((drop * 0.25).toFixed(4)));
+}
+
+function computeHealth(m, freqHistory) {
+  const mech = mechanicalPenalty(m);
+  const elec = electricalPenalty(m);
+  const therm = thermalPenalty(m);
+  const freq = frequencyPenalty(m, freqHistory);
+  const miss = mismatchPenalty(m);
+  const load = loadingPenalty(m);
+  const total = mech + elec + therm + freq + miss + load;
+  return {
+    health_score: parseFloat(Math.max(0, 100 - total).toFixed(2)),
+    mechanical_contrib: mech, electrical_contrib: elec, thermal_contrib: therm,
+    frequency_contrib: freq, mismatch_contrib: miss, loading_contrib: load,
+  };
+}
+
+function generateAlerts(m, hour_ts) {
+  const alerts = [];
+  const checks = [
+    ['shaft_rpm', 30, null, null, null],
+    ['shaft_power_kw', null, null, 35000, 40000],
+    ['sg_actual_current_a', null, null, 1800, 2200],
+    ['sg_actual_frequency_hz', 35, 55, null, 58],
+    ['sg_winding_u1_temp', null, null, 80, 100],
+    ['sg_converter_coolant_temp', null, null, 55, 70],
+  ];
+  for (const [metric, lowW, highW, highC_warn, highC_crit] of checks) {
+    const vals = m[metric];
+    if (!vals || !vals.length) continue;
+    const v = avg(vals);
+    if (highC_crit != null && v > highC_crit) {
+      alerts.push({ hour_ts, severity: 'CRITICAL', alert_type: 'THRESHOLD_HIGH_CRITICAL', metric_name: metric, metric_value: v, threshold_value: highC_crit, message: `${metric} critically high: ${v.toFixed(2)} > ${highC_crit}` });
+    } else if (highC_warn != null && v > highC_warn) {
+      alerts.push({ hour_ts, severity: 'WARNING', alert_type: 'THRESHOLD_HIGH_WARNING', metric_name: metric, metric_value: v, threshold_value: highC_warn, message: `${metric} above warning: ${v.toFixed(2)} > ${highC_warn}` });
+    } else if (lowW != null && v < lowW) {
+      alerts.push({ hour_ts, severity: 'WARNING', alert_type: 'THRESHOLD_LOW_WARNING', metric_name: metric, metric_value: v, threshold_value: lowW, message: `${metric} below minimum: ${v.toFixed(2)} < ${lowW}` });
+    } else if (highW != null && v > highW) {
+      alerts.push({ hour_ts, severity: 'WARNING', alert_type: 'THRESHOLD_HIGH_WARNING', metric_name: metric, metric_value: v, threshold_value: highW, message: `${metric} above warning: ${v.toFixed(2)} > ${highW}` });
+    }
+  }
+  const elecPen = electricalPenalty(m);
+  if (elecPen > 10) {
+    alerts.push({ hour_ts, severity: elecPen > 15 ? 'CRITICAL' : 'WARNING', alert_type: 'ELECTRICAL_EFFICIENCY_LOSS', metric_name: 'sg_actual_current_a', metric_value: avg(m.sg_actual_current_a || [0]), threshold_value: 10, message: `Generator electrical efficiency degrading (penalty=${elecPen.toFixed(1)})` });
+  }
+  return alerts;
+}
+
+let _shipCache = null;
+function loadShipData() {
+  if (_shipCache) return _shipCache;
+  if (!fs.existsSync(XLSX_PATH)) return null;
+
+  const wb = XLSX.readFile(XLSX_PATH);
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(ws, { defval: null });
+
+  // Filter Beijing Maersk, map sensor IDs
+  const byHour = {};
+  for (const row of raw) {
+    const imo = Number(row.imo || row.IMO);
+    if (imo !== BEIJING_IMO) continue;
+    const sensorId = Number(row.sensor_id);
+    const metricName = SENSOR_MAP[sensorId];
+    if (!metricName) continue;
+    const hourKey = String(row.hour_ts || '').trim();
+    if (!hourKey) continue;
+    if (!byHour[hourKey]) byHour[hourKey] = { hour_ts: hourKey, metrics: {} };
+    const bucket = byHour[hourKey].metrics;
+    if (!bucket[metricName]) bucket[metricName] = { avg: [], max: [], min: [] };
+    const av = parseFloat(row.avg_value); if (!isNaN(av)) bucket[metricName].avg.push(av);
+    const mx = parseFloat(row.max_value); if (!isNaN(mx)) bucket[metricName].max.push(mx);
+    const mn = parseFloat(row.min_value); if (!isNaN(mn)) bucket[metricName].min.push(mn);
+  }
+
+  // Sort hours chronologically
+  const hours = Object.values(byHour).sort((a, b) => a.hour_ts.localeCompare(b.hour_ts));
+
+  // Build frequency history for stability penalty (rolling 12-hr window)
+  const freqHistory = {};
+  const freqWindow = [];
+  for (const h of hours) {
+    const fAvg = h.metrics.sg_actual_frequency_hz;
+    if (fAvg && fAvg.avg.length) freqWindow.push(avg(fAvg.avg));
+    freqHistory[h.hour_ts] = [...freqWindow.slice(-12)];
+  }
+
+  // Flatten metrics: use avg values as single-point lists (matching Flink window behavior)
+  const hourly = hours.map((h) => {
+    const m = {};
+    for (const [name, vals] of Object.entries(h.metrics)) {
+      m[name] = vals.avg;
+    }
+    const health = computeHealth(m, freqHistory[h.hour_ts]);
+    const alerts = generateAlerts(m, h.hour_ts);
+
+    // Key metrics snapshot
+    const get = (name) => { const v = avg(m[name] || []); return isNaN(v) ? null : parseFloat(v.toFixed(3)); };
+    return {
+      hour_ts: h.hour_ts,
+      health_score: health.health_score,
+      mechanical_contrib: health.mechanical_contrib,
+      electrical_contrib: health.electrical_contrib,
+      thermal_contrib: health.thermal_contrib,
+      frequency_contrib: health.frequency_contrib,
+      mismatch_contrib: health.mismatch_contrib,
+      loading_contrib: health.loading_contrib,
+      alerts,
+      // Key metrics
+      shaft_rpm: get('shaft_rpm'),
+      shaft_power_kw: get('shaft_power_kw'),
+      shaft_torque_knm: get('shaft_torque_knm'),
+      sg_actual_power_kw: get('sg_actual_power_kw'),
+      sg_actual_frequency_hz: get('sg_actual_frequency_hz'),
+      sg_actual_current_a: get('sg_actual_current_a'),
+      sg_actual_voltage_v: get('sg_actual_voltage_v'),
+      sg_actual_speed_rpm: get('sg_actual_speed_rpm'),
+      sg_energy_kwh: get('sg_energy_kwh'),
+      sg_running_hours: get('sg_running_hours'),
+      sg_available_power_pct: get('sg_available_power_pct'),
+      sg_system_mode: get('sg_system_mode'),
+      // Thermal
+      sg_winding_u1_temp: get('sg_winding_u1_temp'), sg_winding_v1_temp: get('sg_winding_v1_temp'),
+      sg_winding_w1_temp: get('sg_winding_w1_temp'), sg_winding_u2_temp: get('sg_winding_u2_temp'),
+      sg_winding_v2_temp: get('sg_winding_v2_temp'), sg_winding_w2_temp: get('sg_winding_w2_temp'),
+      sg_reactor_winding_l1_1_temp: get('sg_reactor_winding_l1_1_temp'),
+      sg_reactor_winding_l1_2_temp: get('sg_reactor_winding_l1_2_temp'),
+      sg_transformer_winding_2v_temp: get('sg_transformer_winding_2v_temp'),
+      sg_converter_coolant_temp: get('sg_converter_coolant_temp'),
+      sg_air_temp_hot1: get('sg_air_temp_hot1'), sg_air_temp_cold1: get('sg_air_temp_cold1'),
+    };
+  });
+
+  const allAlerts = hourly.flatMap((h) => h.alerts);
+  const latestHour = hourly[hourly.length - 1] || {};
+  const healthScores = hourly.map((h) => h.health_score).filter((v) => v != null);
+  const overview = {
+    ship_name: 'Beijing Maersk',
+    imo: BEIJING_IMO,
+    data_period: hourly.length ? `${hourly[0].hour_ts} – ${hourly[hourly.length - 1].hour_ts}` : 'N/A',
+    total_hours: hourly.length,
+    latest_health_score: latestHour.health_score ?? null,
+    avg_health_score: healthScores.length ? parseFloat((avg(healthScores)).toFixed(2)) : null,
+    min_health_score: healthScores.length ? parseFloat(Math.min(...healthScores).toFixed(2)) : null,
+    total_alerts: allAlerts.length,
+    critical_alerts: allAlerts.filter((a) => a.severity === 'CRITICAL').length,
+    warning_alerts: allAlerts.filter((a) => a.severity === 'WARNING').length,
+    latest_shaft_rpm: latestHour.shaft_rpm,
+    latest_power_kw: latestHour.shaft_power_kw,
+    latest_sg_power_kw: latestHour.sg_actual_power_kw,
+    latest_frequency_hz: latestHour.sg_actual_frequency_hz,
+    latest_current_a: latestHour.sg_actual_current_a,
+    latest_running_hours: latestHour.sg_running_hours,
+    latest_energy_kwh: latestHour.sg_energy_kwh,
+  };
+
+  _shipCache = { overview, hourly, allAlerts };
+  return _shipCache;
+}
+
+api.get('/ship/data', (_req, res) => {
+  try {
+    const data = loadShipData();
+    if (!data) return res.status(404).json({ error: 'XLSX file not found', path: XLSX_PATH });
+    res.set('Cache-Control', 'no-store');
+    res.json(data);
+  } catch (e) {
+    console.error('ship/data error:', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+// ─── End Beijing Maersk pipeline ───────────────────────────────────────────────
+
 app.use('/api', api);
 
 app.use((req, res) => {

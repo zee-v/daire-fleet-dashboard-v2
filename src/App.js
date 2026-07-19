@@ -5,20 +5,20 @@ import UnifiedDashboardPage from './pages/UnifiedDashboardPage';
 import FleetHealthPage from './pages/FleetHealthPage';
 import MaintenancePage from './pages/MaintenancePage';
 
-// Monitoring Pages
+// Live Monitoring Pages
 import SensorEventsPage from './pages/monitoring/SensorEventsPage';
 import HealthScoresPage from './pages/monitoring/HealthScoresPage';
 import KPIMonitoringPage from './pages/monitoring/KPIMonitoringPage';
+import AlertsEventsPage from './pages/monitoring/AlertsEventsPage';
 
-// Analytics Pages
-import HistoricalTrendsPage from './pages/analytics/HistoricalTrendsPage';
-import KafkaAnalyticsPage from './pages/analytics/KafkaAnalyticsPage';
-import HistoricalReplayPage from './pages/analytics/HistoricalReplayPage';
-import HealthAnalysisPage from './pages/analytics/HealthAnalysisPage';
-
-// Predictive Pages
-import ActiveAlertsPage from './pages/predictive/ActiveAlertsPage';
-import MaintenanceSchedulePage from './pages/predictive/MaintenanceSchedulePage';
+// dAIRE Analytics — XLSX-driven Beijing Maersk pages
+import ShipOverviewPage from './pages/ship/ShipOverviewPage';
+import EnergyEfficiencyPage from './pages/ship/EnergyEfficiencyPage';
+import GeneratorPerformancePage from './pages/ship/GeneratorPerformancePage';
+import ShipHistoricalTrendsPage from './pages/ship/ShipHistoricalTrendsPage';
+import ShaftTelemetryPage from './pages/ship/ShaftTelemetryPage';
+import ComponentSummaryPage from './pages/ship/ComponentSummaryPage';
+import ThermalHealthPage from './pages/ship/ThermalHealthPage';
 
 import { SelectionProvider } from './context/SelectionContext';
 import './App.css';
@@ -32,22 +32,22 @@ function App() {
             {/* Fleet Overview */}
             <Route path="/fleet-overview" element={<UnifiedDashboardPage />} />
             <Route path="/fleet-overview/health-report" element={<HealthScoresPage />} />
-            <Route path="/fleet-overview/alerts-summary" element={<ActiveAlertsPage />} />
-            <Route path="/fleet-overview/trends-analytics" element={<HistoricalTrendsPage />} />
+            <Route path="/fleet-overview/alerts-summary" element={<AlertsEventsPage />} />
+            <Route path="/fleet-overview/trends-analytics" element={<ShipHistoricalTrendsPage />} />
 
             {/* Live Monitoring */}
             <Route path="/live-monitoring/health-score" element={<HealthScoresPage />} />
             <Route path="/live-monitoring/kpi-monitoring" element={<KPIMonitoringPage />} />
+            <Route path="/live-monitoring/alerts-events" element={<AlertsEventsPage />} />
 
-            {/* dAIRE Analytics */}
-            <Route path="/daire-analytics/historical-trends" element={<HistoricalTrendsPage />} />
-            <Route path="/daire-analytics/kafka-analytics" element={<KafkaAnalyticsPage />} />
-            <Route path="/daire-analytics/kpi-monitoring" element={<KPIMonitoringPage />} />
-            <Route path="/daire-analytics/maintenance-recommendations" element={<MaintenanceSchedulePage />} />
-            <Route path="/daire-analytics/predictive-alerts" element={<ActiveAlertsPage />} />
-            <Route path="/daire-analytics/equipment-health-scores" element={<HealthScoresPage />} />
-            <Route path="/daire-analytics/historical-replay" element={<HistoricalReplayPage />} />
-            <Route path="/daire-analytics/sensor-events" element={<SensorEventsPage />} />
+            {/* dAIRE Analytics — Beijing Maersk XLSX pages */}
+            <Route path="/daire-analytics/ship-overview" element={<ShipOverviewPage />} />
+            <Route path="/daire-analytics/energy-efficiency" element={<EnergyEfficiencyPage />} />
+            <Route path="/daire-analytics/generator-performance" element={<GeneratorPerformancePage />} />
+            <Route path="/daire-analytics/historical-trends" element={<ShipHistoricalTrendsPage />} />
+            <Route path="/daire-analytics/shaft-telemetry" element={<ShaftTelemetryPage />} />
+            <Route path="/daire-analytics/component-summary" element={<ComponentSummaryPage />} />
+            <Route path="/daire-analytics/thermal-health" element={<ThermalHealthPage />} />
 
             {/* Predictive Maintenance — Vessel Components */}
             <Route path="/vessel-components/:fleetId/:componentId" element={<FleetHealthPage />} />
@@ -58,11 +58,6 @@ function App() {
             <Route path="/maintenance-actions" element={<MaintenancePage />} />
             <Route path="/monitoring/sensor-events" element={<SensorEventsPage />} />
             <Route path="/monitoring/health-scores" element={<HealthScoresPage />} />
-            <Route path="/monitoring/kpi-monitoring" element={<KPIMonitoringPage />} />
-            <Route path="/analytics/historical-trends" element={<HistoricalTrendsPage />} />
-            <Route path="/analytics/health-analysis" element={<HealthAnalysisPage />} />
-            <Route path="/predictive/active-alerts" element={<ActiveAlertsPage />} />
-            <Route path="/predictive/maintenance-schedule" element={<MaintenanceSchedulePage />} />
 
             {/* Default */}
             <Route path="*" element={<Navigate to="/fleet-overview" replace />} />

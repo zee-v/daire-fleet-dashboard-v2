@@ -32,6 +32,7 @@ const ROUTE_SECTIONS = [
     children: [
       { label: 'Health Score', route: '/live-monitoring/health-score', icon: '❤️' },
       { label: 'KPI Monitoring', route: '/live-monitoring/kpi-monitoring', icon: '📈' },
+      { label: 'Alerts & Events', route: '/live-monitoring/alerts-events', icon: '🚨' },
     ],
   },
   {
@@ -39,14 +40,13 @@ const ROUTE_SECTIONS = [
     label: 'dAIRE Analytics',
     icon: '📊',
     children: [
+      { label: 'Ship Overview', route: '/daire-analytics/ship-overview', icon: '🚢' },
+      { label: 'Energy & Efficiency', route: '/daire-analytics/energy-efficiency', icon: '⚡' },
+      { label: 'Generator Performance', route: '/daire-analytics/generator-performance', icon: '⚙️' },
       { label: 'Historical Trends', route: '/daire-analytics/historical-trends', icon: '📉' },
-      { label: 'Kafka Analytics', route: '/daire-analytics/kafka-analytics', icon: '⛓' },
-      { label: 'KPI Monitoring', route: '/daire-analytics/kpi-monitoring', icon: '📈' },
-      { label: 'Maintenance Recommendations', route: '/daire-analytics/maintenance-recommendations', icon: '🗓️' },
-      { label: 'Predictive Alerts', route: '/daire-analytics/predictive-alerts', icon: '⚠️' },
-      { label: 'Equipment Health Scores', route: '/daire-analytics/equipment-health-scores', icon: '❤️' },
-      { label: 'Historical Replay', route: '/daire-analytics/historical-replay', icon: '↺' },
-      { label: 'Sensor Events', route: '/daire-analytics/sensor-events', icon: '🔍' },
+      { label: 'Shaft Telemetry', route: '/daire-analytics/shaft-telemetry', icon: '🔩' },
+      { label: 'Component Summary', route: '/daire-analytics/component-summary', icon: '🧩' },
+      { label: 'Thermal & Winding Health', route: '/daire-analytics/thermal-health', icon: '🌡️' },
     ],
   },
 ];
