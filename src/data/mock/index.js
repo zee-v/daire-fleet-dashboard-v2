@@ -9,9 +9,10 @@
  */
 
 // ── Fleets ─────────────────────────────────────────────────────────────────
-import { FLEET_ATLANTIC }      from './fleets/fleet-atlantic';
-import { FLEET_PACIFIC }       from './fleets/fleet-pacific';
-import { FLEET_MEDITERRANEAN } from './fleets/fleet-mediterranean';
+import { FLEET_ATLANTIC }       from './fleets/fleet-atlantic';
+import { FLEET_PACIFIC }        from './fleets/fleet-pacific';
+import { FLEET_MEDITERRANEAN }  from './fleets/fleet-mediterranean';
+import { FLEET_BEIJING_MAERSK } from './fleets/fleet-beijing-maersk';
 
 // ── Vessels ────────────────────────────────────────────────────────────────
 import { VESSEL_A } from './vessels/vessel-a';
@@ -42,13 +43,14 @@ export { ALL_SYSTEMS };
 
 /** @type {Record<string, import('../../types/index').Fleet>} */
 export const FLEET_MAP = {
-  [FLEET_ATLANTIC.id]:      FLEET_ATLANTIC,
-  [FLEET_PACIFIC.id]:       FLEET_PACIFIC,
-  [FLEET_MEDITERRANEAN.id]: FLEET_MEDITERRANEAN,
+  [FLEET_BEIJING_MAERSK.id]: FLEET_BEIJING_MAERSK,
+  [FLEET_ATLANTIC.id]:       FLEET_ATLANTIC,
+  [FLEET_PACIFIC.id]:        FLEET_PACIFIC,
+  [FLEET_MEDITERRANEAN.id]:  FLEET_MEDITERRANEAN,
 };
 
 /** Ordered list for sidebar rendering */
-export const ALL_FLEETS = [FLEET_ATLANTIC, FLEET_PACIFIC, FLEET_MEDITERRANEAN];
+export const ALL_FLEETS = [FLEET_BEIJING_MAERSK, FLEET_ATLANTIC, FLEET_PACIFIC, FLEET_MEDITERRANEAN];
 
 /** @type {Record<string, import('../../types/index').Vessel>} */
 export const VESSEL_MAP = {

@@ -96,14 +96,14 @@
   /* ── Card decoration ── */
   --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
 
-  /* ── Sidebar — stays dark; provides structural contrast against light content ── */
-  --sidebar-bg:         #1a2744;
-  --sidebar-border:     #263554;
-  --sidebar-hover-bg:   rgba(255, 255, 255, 0.08);
-  --sidebar-active-bg:  rgba(59, 130, 246, 0.30);
-  --sidebar-text:       #90a8c4;
-  --sidebar-text-active: #ffffff;
-  --sidebar-section-text: #556b8a;
+  /* ── Sidebar — light theme ── */
+  --sidebar-bg:          #f0f4f9;
+  --sidebar-border:      #d4dce9;
+  --sidebar-hover-bg:    rgba(26, 86, 219, 0.08);
+  --sidebar-active-bg:   rgba(26, 86, 219, 0.14);
+  --sidebar-text:        #4b6080;
+  --sidebar-text-active: #0c1526;
+  --sidebar-section-text: #7a92aa;
 }
 
 body {

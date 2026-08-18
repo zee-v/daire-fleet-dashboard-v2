@@ -635,27 +635,32 @@ app.use((req, res) => {
   );
 });
 
-const server = app.listen(PORT, () => {
-  console.log('');
-  console.log('======== Fleet CSV backend ========');
-  console.log(`  http://localhost:${PORT}/api/health`);
-  console.log(`  http://localhost:${PORT}/api/edp/dashboard`);
-  console.log(`  http://localhost:${PORT}/api/components`);
-  console.log(`  http://localhost:${PORT}/api/component/engine-system/data`);
-  console.log(`  CSV: ${CSV_PATH}`);
-  console.log(`  Components: ${COMPONENTS.map(c => c.name).join(', ')}`);
-  console.log('============================================');
-  console.log('');
-});
+// Export for Railway serverless and other serverless runtimes
+module.exports = app;
 
-server.on('error', (err) => {
-  if (err && err.code === 'EADDRINUSE') {
-    console.error(
-      `\n[Fleet CSV backend] Port ${PORT} is already in use. Another process is answering — browsers often show plain "Cannot GET /api/health".\n` +
-        `Common cause: another \`node server.js\` or Flask on the same port (check 5000 vs SIADEMO mock on 5001).\n` +
-        `Fix: stop that PID (Windows: netstat -ano | findstr :${PORT}  then  taskkill /PID <pid> /F)  OR  set PORT=5002 and match package.json "proxy" + REACT_APP_EDP_API_URL.\n`,
-    );
-    process.exit(1);
-  }
-  throw err;
-});
+// Start the server only when run directly (local dev)
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log('');
+    console.log('======== Fleet CSV backend ========');
+    console.log(`  http://localhost:${PORT}/api/health`);
+    console.log(`  http://localhost:${PORT}/api/edp/dashboard`);
+    console.log(`  http://localhost:${PORT}/api/components`);
+    console.log(`  http://localhost:${PORT}/api/component/engine-system/data`);
+    console.log(`  CSV: ${CSV_PATH}`);
+    console.log(`  Components: ${COMPONENTS.map(c => c.name).join(', ')}`);
+    console.log('============================================');
+    console.log('');
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE') {
+      console.error(
+        `\n[Fleet CSV backend] Port ${PORT} is already in use.\n` +
+          `Fix: stop that PID or set PORT=5002.\n`,
+      );
+      process.exit(1);
+    }
+    throw err;
+  });
+}

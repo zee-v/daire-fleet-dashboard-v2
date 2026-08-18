@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
@@ -11,25 +11,64 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useShipData } from '../hooks/useShipData';
+import { ALL_FLEETS } from '../data/mock';
 import './UnifiedDashboardPage.css';
+
+function useDashboardData() {
+  const { data, loading } = useShipData();
+
+  return useMemo(() => {
+    if (loading || !data) return { loading, dashboardData: null };
+
+    const hourly = data.hourly || [];
+    const ov = data.overview;
+    const allAlerts = data.allAlerts || [];
+
+    // Fleet timeline — subsample to 60 points
+    const step = Math.max(1, Math.ceil(hourly.length / 60));
+    const fleetTimeline = hourly
+      .filter((_, i) => i % step === 0)
+      .map(h => ({ _t: h.hour_ts, value: h.health_score, label: `Fleet Asia-Europe · Beijing Maersk` }));
+
+    // Vessel health per fleet (Fleet Asia-Europe is real; others are mock)
+    const byVessel = {};
+    ALL_FLEETS.forEach(fleet => {
+      if (fleet.id === 'beijing-maersk') {
+        const step2 = Math.max(1, Math.ceil(hourly.length / 30));
+        byVessel[fleet.name] = {
+          healthTrend: hourly.filter((_, i) => i % step2 === 0).map(h => ({ value: h.health_score })),
+          alerts: { totalAlerts: allAlerts.filter(a => a.severity === 'critical' || a.severity === 'warning').length },
+        };
+      } else {
+        const mockHealth = { 'Fleet Atlantic': 82, 'Fleet Pacific': 91, 'Fleet Mediterranean': 75 }[fleet.name] || 80;
+        byVessel[fleet.name] = {
+          healthTrend: [{ value: mockHealth }],
+          alerts: { totalAlerts: 0 },
+        };
+      }
+    });
+
+    const criticalAlerts = allAlerts.filter(a => a.severity === 'critical').length;
+    const activeAlerts = allAlerts.filter(a => a.severity === 'critical' || a.severity === 'warning').length;
+
+    const dashboardData = {
+      kpi: {
+        overallHealth: Math.round(ov?.latest_health_score ?? 0),
+        activeAlerts,
+        criticalAlerts,
+      },
+      fleetTimeline,
+      byVessel,
+    };
+
+    return { loading: false, dashboardData };
+  }, [data, loading]);
+}
 
 function UnifiedDashboardPage() {
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`${(process.env.REACT_APP_EDP_API_URL || '').replace(/\/$/, '')}/api/edp/dashboard`)
-      .then(res => res.json())
-      .then(data => {
-        setDashboardData(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load dashboard data:', err);
-        setLoading(false);
-      });
-  }, []);
+  const { loading, dashboardData } = useDashboardData();
 
   return (
     <div className="unified-dashboard">
@@ -43,6 +82,7 @@ function UnifiedDashboardPage() {
       <div className="unified-content">
         <OverviewTab data={dashboardData} loading={loading} navigate={navigate} />
       </div>
+
     </div>
   );
 }
@@ -130,12 +170,12 @@ function OverviewTab({ data, loading, navigate }) {
                   <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                labelStyle={{ color: '#e2e8f0' }}
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+              <XAxis dataKey="time" stroke="var(--text-tertiary)" fontSize={12} tick={{ fill: 'var(--text-muted)' }} />
+              <YAxis stroke="var(--text-tertiary)" fontSize={12} tick={{ fill: 'var(--text-muted)' }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                labelStyle={{ color: 'var(--text-secondary)' }}
               />
               <Area 
                 type="monotone" 
@@ -152,12 +192,12 @@ function OverviewTab({ data, loading, navigate }) {
           <h3 className="chart-title">Vessel Health Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={vesselHealthData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis type="number" stroke="#94a3b8" fontSize={12} domain={[0, 100]} />
-              <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={80} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                labelStyle={{ color: '#e2e8f0' }}
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
+              <XAxis type="number" stroke="var(--text-tertiary)" fontSize={12} domain={[0, 100]} tick={{ fill: 'var(--text-muted)' }} />
+              <YAxis type="category" dataKey="name" stroke="var(--text-tertiary)" fontSize={11} width={80} tick={{ fill: 'var(--text-muted)' }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                labelStyle={{ color: 'var(--text-secondary)' }}
               />
               <Bar dataKey="health" fill="#3b82f6" radius={[0, 8, 8, 0]} />
             </BarChart>

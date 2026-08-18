@@ -1,0 +1,23 @@
+.dash-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #060d1a;
+  color: #f1f5f9;
+  overflow: hidden;
+}
+
+.dash-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dash-content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}

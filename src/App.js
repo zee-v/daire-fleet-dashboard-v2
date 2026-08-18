@@ -20,6 +20,10 @@ import ShaftTelemetryPage from './pages/ship/ShaftTelemetryPage';
 import ComponentSummaryPage from './pages/ship/ComponentSummaryPage';
 import ThermalHealthPage from './pages/ship/ThermalHealthPage';
 
+// New three-panel pages (self-contained with FleetPanel)
+import LivePerformancePage from './pages/LivePerformancePage';
+import AssetHealthPage from './pages/AssetHealthPage';
+
 import { SelectionProvider } from './context/SelectionContext';
 import './App.css';
 
@@ -36,11 +40,13 @@ function App() {
             <Route path="/fleet-overview/trends-analytics" element={<ShipHistoricalTrendsPage />} />
 
             {/* Live Monitoring */}
+            <Route path="/live-monitoring/alerts-events" element={<AlertsEventsPage />} />
             <Route path="/live-monitoring/health-score" element={<HealthScoresPage />} />
             <Route path="/live-monitoring/kpi-monitoring" element={<KPIMonitoringPage />} />
-            <Route path="/live-monitoring/alerts-events" element={<AlertsEventsPage />} />
+            <Route path="/live-performance/:fleetId/:componentId" element={<LivePerformancePage />} />
+            <Route path="/live-performance" element={<LivePerformancePage />} />
 
-            {/* dAIRE Analytics — Beijing Maersk XLSX pages */}
+            {/* dAIRE Analytics */}
             <Route path="/daire-analytics/ship-overview" element={<ShipOverviewPage />} />
             <Route path="/daire-analytics/energy-efficiency" element={<EnergyEfficiencyPage />} />
             <Route path="/daire-analytics/generator-performance" element={<GeneratorPerformancePage />} />
@@ -49,10 +55,11 @@ function App() {
             <Route path="/daire-analytics/component-summary" element={<ComponentSummaryPage />} />
             <Route path="/daire-analytics/thermal-health" element={<ThermalHealthPage />} />
 
-            {/* Predictive Maintenance — Vessel Components */}
+            {/* Predictive Maintenance — fleet scheduler unchanged */}
             <Route path="/vessel-components/:fleetId/:componentId" element={<FleetHealthPage />} />
+            <Route path="/asset-health" element={<AssetHealthPage />} />
 
-            {/* Legacy redirects */}
+            {/* Legacy */}
             <Route path="/unified-dashboard" element={<Navigate to="/fleet-overview" replace />} />
             <Route path="/fleet-health" element={<FleetHealthPage />} />
             <Route path="/maintenance-actions" element={<MaintenancePage />} />

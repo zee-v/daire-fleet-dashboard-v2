@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { getFleets } from '../services/fleetService';
 import { getComponents } from '../services/componentService';
+import { BEIJING_MAERSK_COMPONENTS } from '../context/ComponentContext';
 import { useSelection } from '../context/SelectionContext';
 import './Sidebar.css';
 
@@ -20,31 +21,6 @@ const ROUTE_SECTIONS = [
     defaultExpanded: true,
     children: [
       { label: 'Dashboard', route: '/fleet-overview', end: true },
-      { label: 'Detailed Health Report', route: '/fleet-overview/health-report' },
-      { label: 'Alerts Summary', route: '/fleet-overview/alerts-summary' },
-      { label: 'Trends / Analytics', route: '/fleet-overview/trends-analytics' },
-    ],
-  },
-  {
-    id: 'live-monitoring',
-    label: 'Live Monitoring',
-    icon: '◉',
-    children: [
-      { label: 'Alerts & Events', route: '/live-monitoring/alerts-events' },
-    ],
-  },
-  {
-    id: 'daire-analytics',
-    label: 'dAIRE Analytics',
-    icon: '◈',
-    children: [
-      { label: 'Ship Overview', route: '/daire-analytics/ship-overview' },
-      { label: 'Energy & Efficiency', route: '/daire-analytics/energy-efficiency' },
-      { label: 'Generator Performance', route: '/daire-analytics/generator-performance' },
-      { label: 'Historical Trends', route: '/daire-analytics/historical-trends' },
-      { label: 'Shaft Telemetry', route: '/daire-analytics/shaft-telemetry' },
-      { label: 'Component Summary', route: '/daire-analytics/component-summary' },
-      { label: 'Thermal & Winding Health', route: '/daire-analytics/thermal-health' },
     ],
   },
 ];
@@ -113,6 +89,88 @@ function ComponentItem({ component, fleetId }) {
       <span className="nav-status-dot" style={{ background: STATUS_COLOR[component.status] || '#64748b' }} />
       <span className="nav-comp-label">{component.name}</span>
     </NavLink>
+  );
+}
+
+function LiveComponentItem({ component, fleetId }) {
+  const route = `/live-performance/${fleetId}/${component.id}`;
+  return (
+    <NavLink
+      to={route}
+      className={({ isActive }) => `nav-comp-row${isActive ? ' nav-comp-row--active' : ''}`}
+      title={component.name}
+    >
+      <span className="nav-status-dot" style={{ background: STATUS_COLOR[component.status] || '#64748b' }} />
+      <span className="nav-comp-label">{component.name}</span>
+    </NavLink>
+  );
+}
+
+function LiveFleetItem({ fleet }) {
+  const { pathname } = useLocation();
+  const components = fleet.id === 'beijing-maersk'
+    ? BEIJING_MAERSK_COMPONENTS
+    : getComponents(fleet.id);
+  const routePrefix = `/live-performance/${fleet.id}/`;
+  const fleetIsActive = pathname.startsWith(routePrefix);
+  const [expanded, setExpanded] = useState(fleetIsActive);
+
+  useEffect(() => {
+    if (fleetIsActive) setExpanded(true);
+  }, [fleetIsActive]);
+
+  return (
+    <div className="nav-item-wrapper">
+      <button
+        type="button"
+        className={`nav-item sidebar-group-toggle${fleetIsActive ? ' nav-item--active' : ''}`}
+        onClick={() => setExpanded((p) => !p)}
+        aria-expanded={expanded}
+      >
+        <span className="nav-icon">▤</span>
+        <span className="nav-label">{fleet.name}</span>
+        <span className={`nav-arrow ${expanded ? 'nav-arrow--open' : ''}`}>›</span>
+      </button>
+      {expanded && (
+        <div className="nav-children">
+          {components.map((c) => (
+            <LiveComponentItem key={c.id} component={c} fleetId={fleet.id} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LiveMonitoringSection({ fleets }) {
+  const { pathname } = useLocation();
+  const isActive = pathname.startsWith('/live-performance');
+  const [expanded, setExpanded] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive) setExpanded(true);
+  }, [isActive]);
+
+  return (
+    <div className="nav-item-wrapper">
+      <button
+        type="button"
+        className={`nav-item sidebar-group-toggle${isActive ? ' nav-item--active' : ''}`}
+        onClick={() => setExpanded((p) => !p)}
+        aria-expanded={expanded}
+      >
+        <span className="nav-icon">◉</span>
+        <span className="nav-label">Live Monitoring</span>
+        <span className={`nav-arrow ${expanded ? 'nav-arrow--open' : ''}`}>›</span>
+      </button>
+      {expanded && (
+        <div className="nav-children sidebar-group-children">
+          {fleets.map((fleet) => (
+            <LiveFleetItem key={fleet.id} fleet={fleet} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -210,6 +268,8 @@ export default function Sidebar() {
         {ROUTE_SECTIONS.map((section) => (
           <RouteSection key={section.id} section={section} />
         ))}
+
+        <LiveMonitoringSection fleets={fleets} />
 
         <PredictiveMaintenanceSection fleets={fleets} />
       </nav>

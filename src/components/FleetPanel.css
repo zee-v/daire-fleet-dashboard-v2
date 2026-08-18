@@ -1,0 +1,221 @@
+.fleet-panel {
+  width: 240px;
+  min-width: 240px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* Health ring */
+.fp-health-block {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.fp-health-ring {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.fp-health-score {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fp-health-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-health-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fp-health-period {
+  font-size: 10px;
+  color: var(--text-subtle);
+}
+
+/* Section title */
+.fp-section-title {
+  padding: 10px 16px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+/* Penalties */
+.fp-penalties {
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.fp-penalty-row {
+  display: grid;
+  grid-template-columns: 62px 1fr 32px;
+  align-items: center;
+  gap: 6px;
+}
+
+.fp-penalty-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.fp-mini-bar-track {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fp-mini-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.fp-penalty-val {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Fleet list */
+.fp-fleet-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px 12px;
+  gap: 2px;
+}
+
+.fp-fleet-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.fp-fleet-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.fp-fleet-btn:hover {
+  background: var(--hover-bg);
+}
+
+.fp-fleet-btn--active {
+  background: var(--hover-bg);
+}
+
+.fp-fleet-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.fp-fleet-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.fp-fleet-btn--active .fp-fleet-name {
+  color: var(--text-primary);
+}
+
+.fp-fleet-live {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent-blue-light);
+  background: rgba(59, 130, 246, 0.15);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Component buttons */
+.fp-comp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 16px;
+}
+
+.fp-comp-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.fp-comp-btn:hover {
+  background: var(--hover-bg);
+}
+
+.fp-comp-btn--active {
+  background: var(--hover-bg);
+  border-left: 2px solid var(--accent-blue);
+}
+
+.fp-comp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fp-comp-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex: 1;
+}
+
+.fp-comp-btn--active .fp-comp-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.fp-comp-score {
+  font-size: 11px;
+  font-weight: 600;
+}
