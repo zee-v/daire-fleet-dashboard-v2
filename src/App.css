@@ -1,0 +1,129 @@
+/* Global reset / base styles — layout is handled by Layout.css */
+* {
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════════════════════
+   THEME SYSTEM — semantic design tokens
+   Dark mode is default (:root). Light mode is [data-theme="light"].
+   ══════════════════════════════════════════════════════════ */
+:root {
+  /* ── Page backgrounds ── */
+  --bg-primary:   #0d1b2e;   /* header bars, stats strip, footer chrome */
+  --bg-secondary: #0a1628;   /* main page canvas */
+  --bg-card:      #132033;   /* card / panel surface */
+  --bg-tertiary:  #1a2d44;   /* nested surface (rows, sub-panels) */
+
+  /* ── Borders ── */
+  --border-primary:  #1e2d3d;  /* divider lines, stat-row borders */
+  --border-secondary: #1e3a5a; /* card outline borders */
+
+  /* ── Text ── */
+  --text-primary:   #f1f5f9;
+  --text-secondary: #e2e8f0;
+  --text-tertiary:  #94a3b8;
+  --text-muted:     #64748b;
+  --text-subtle:    #475569;
+
+  /* ── Accents ── */
+  --accent-blue:        #3b82f6;
+  --accent-blue-light:  #60a5fa;
+  --accent-blue-lighter: #93c5fd;
+
+  /* ── Status ── */
+  --status-critical: #ef4444;
+  --status-warning:  #f59e0b;
+  --status-healthy:  #22c55e;
+  --status-info:     #60a5fa;
+
+  /* ── Interaction ── */
+  --hover-bg:  #1a2d44;
+  --active-bg: #1d4ed8;
+
+  /* ── Card decoration ── */
+  --card-shadow: none;
+  --card-border-radius: 8px;
+
+  /* ── Sidebar (stays dark in both themes) ── */
+  --sidebar-bg:         #071220;
+  --sidebar-border:     #1a3050;
+  --sidebar-hover-bg:   rgba(255, 255, 255, 0.05);
+  --sidebar-active-bg:  rgba(37, 99, 235, 0.28);
+  --sidebar-text:       #7e9bb8;
+  --sidebar-text-active: #e2e8f0;
+  --sidebar-section-text: #415a75;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT THEME — genuinely contrasting, enterprise-grade
+   Page canvas:  #e9eef5  (cool light blue-gray)
+   Panels/cards: #ffffff  (white with shadow → clearly "lifted")
+   Sidebar:      #1a2744  (dark navy — structural anchor)
+   ══════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* ── Page backgrounds ── */
+  --bg-primary:   #ffffff;   /* header bars, stats strip → clean white strip */
+  --bg-secondary: #e9eef5;   /* main page canvas — distinct from white cards */
+  --bg-card:      #ffffff;   /* card / panel surface — white + shadow = clearly boxed */
+  --bg-tertiary:  #f3f7fc;   /* nested surface: table rows, sub-panels */
+
+  /* ── Borders ── */
+  --border-primary:   #d4dce9;  /* divider lines */
+  --border-secondary: #bfcadb;  /* card outlines — visible but refined */
+
+  /* ── Text ── */
+  --text-primary:   #0c1526;   /* near-black headings */
+  --text-secondary: #1e2d40;   /* body text */
+  --text-tertiary:  #374b64;   /* secondary labels */
+  --text-muted:     #5e7592;   /* muted / placeholder */
+  --text-subtle:    #8fa3bc;   /* very muted captions */
+
+  /* ── Accents ── */
+  --accent-blue:         #1a56db;   /* strong blue — primary actions */
+  --accent-blue-light:   #2563eb;
+  --accent-blue-lighter: #3b82f6;
+
+  /* ── Status (richer, readable on white) ── */
+  --status-critical: #c81e1e;
+  --status-warning:  #b05c08;
+  --status-healthy:  #147a3a;
+  --status-info:     #1a56db;
+
+  /* ── Interaction ── */
+  --hover-bg:  #eaf0f9;
+  --active-bg: #1a56db;
+
+  /* ── Card decoration ── */
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  /* ── Sidebar — light theme ── */
+  --sidebar-bg:          #f0f4f9;
+  --sidebar-border:      #d4dce9;
+  --sidebar-hover-bg:    rgba(26, 86, 219, 0.08);
+  --sidebar-active-bg:   rgba(26, 86, 219, 0.14);
+  --sidebar-text:        #4b6080;
+  --sidebar-text-active: #0c1526;
+  --sidebar-section-text: #7a92aa;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Smooth theme transitions for all elements */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.18s;
+  transition-timing-function: ease;
+}
+
+/* Reset transition on elements that need their own (animations won't conflict) */
+button, input, select, textarea {
+  transition: background-color 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease, box-shadow 0.18s ease, opacity 0.15s ease,
+              filter 0.15s ease;
+}

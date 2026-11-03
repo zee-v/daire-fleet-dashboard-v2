@@ -1,0 +1,32 @@
+.page-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--card-shadow);
+}
+.page-header-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.page-header-logo {
+  height: 56px;
+  aspect-ratio: 1.4;
+  object-fit: cover;
+  object-position: 50% 49%;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border-primary);
+  flex: 0 0 auto;
+}
+.page-header-product {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent-blue-light);
+}
+.page-header-title { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.page-header-sub { margin-top: 2px; font-size: 14px; color: var(--text-tertiary); }
+.page-header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }

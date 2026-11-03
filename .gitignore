@@ -1,0 +1,14 @@
+node_modules/
+build/
+backend/node_modules/
+
+# Local env files — never commit real secrets
+.env.local
+.env.production.local
+
+# .env.production is intentionally committed (contains only public URLs, no secrets)
+# To override locally, use .env.production.local
+
+# Firebase debug log
+firebase-debug.log
+.firebase/
