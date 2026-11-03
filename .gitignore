@@ -12,3 +12,5 @@ backend/node_modules/
 # Firebase debug log
 firebase-debug.log
 .firebase/
+
+.DS_Store
