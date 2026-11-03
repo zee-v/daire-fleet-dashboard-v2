@@ -11,7 +11,7 @@ React (Create React App) front end. No backend: all data is bundled (`public/dat
 (On Node v25 `react-scripts` fails via npm; use `node node_modules/react-scripts/bin/react-scripts.js build`.)
 
 ## Deploy (Firebase Hosting)
-`firebase.json` serves `build/`. Check the `site` value before deploying: `daire-fleet-v2` is the live v2 site, so deploying with it replaces v2.
+`firebase.json` serves `build/`. Check the `site` value before deploying: this repo deploys to `daire-fleet-v3` (https://daire-fleet-v3.web.app); `daire-fleet-v2` is the separate v2 site.
 
     firebase login
     firebase deploy --only hosting
